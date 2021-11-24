@@ -72,7 +72,7 @@ if ! has_command ansible-playbook; then
 
     # Install passlib for encrypt
     yum -y groupinstall "Development tools"
-    yum -y install sshpass libffi-devel openssl-devel && pip3 install pyrax pysphere boto passlib dnspython
+    yum -y install sshpass libffi-devel openssl-devel python3-devel && pip3 install wheel pyrax pysphere boto passlib dnspython
 
     # Install Ansible module dependencies
     yum -y install bzip2 file findutils git gzip hg svn sudo tar unzip xz zip
@@ -86,7 +86,7 @@ if ! has_command ansible-playbook; then
 
     # Install required Python libs and pip
     apt_install python3-pip python3-yaml python3-jinja2 python3-httplib2 python3-netaddr python3-paramiko python3-pkg-resources libffi-dev python3-all-dev python3-mysqldb python3-selinux python3-boto
-    [ "X$?" != X0 ] && apt_install python-pip python-yaml python-jinja2 python-httplib2 python-netaddr python-paramiko python-pkg-resources libffi-dev python-all-dev python-mysqldb python-selinux python-boto
+    [ "X$?" != X0 ] && apt_install python-pip python-yaml python-jinja2 python-httplib2 python-netaddr python-paramiko python-pkg-resources libffi-dev python3-all-dev python-mysqldb python-selinux python-boto
     [ -n "$( dpkg_check_lock && apt-cache search python-keyczar )" ] && apt_install python-keyczar
     dpkg_check_lock && apt-cache search ^git$ | grep -q "^git\s" && apt_install git || apt_install git-core
 
