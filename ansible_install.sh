@@ -20,7 +20,7 @@ yum_makecache_retry() {
 }
 
 wait_for_cloud_init() {
-  while pgrep -f "/usr/bin/python /usr/bin/cloud-init" >/dev/null 2>&1; do
+  while pgrep -f "/usr/bin/python3 /usr/bin/cloud-init" >/dev/null 2>&1; do
     echo "Waiting for cloud-init to complete"
     sleep 1
   done
@@ -61,22 +61,22 @@ if ! has_command ansible-playbook; then
     # One more time with EPEL to avoid failures
     yum_makecache_retry
 
-    yum -y install python-pip PyYAML python-jinja2 python-httplib2 python-keyczar python-paramiko git
+    yum -y install python3-pip PyYAML python3-jinja2 python3-httplib2 python3-keyczar python3-paramiko git
     # If python-pip install failed and setuptools exists, try that
-      yum -y install python-setuptools
-      easy_install pip
-    if ! has_command pip && ! has command easy_install; then
-    elif ! has_command pip && has_command easy_install; then
-      easy_install pip
+    if ! has_command pip3 && ! has command easy_install; then
+      yum -y install python3-setuptools
+      easy_install pip3
+    elif ! has_command pip3 && has_command easy_install; then
+      easy_install pip3
     fi
 
     # Install passlib for encrypt
     yum -y groupinstall "Development tools"
-    yum -y install sshpass libffi-devel openssl-devel && pip install pyrax pysphere boto passlib dnspython
+    yum -y install sshpass libffi-devel openssl-devel && pip3 install pyrax pysphere boto passlib dnspython
 
     # Install Ansible module dependencies
     yum -y install bzip2 file findutils git gzip hg svn sudo tar unzip xz zip
-    [ ! -n "$(grep ':8' /etc/system-release-cpe)" ] && yum -y install libselinux-python python-devel MySQL-python
+    [ ! -n "$(grep ':8' /etc/system-release-cpe)" ] && yum -y install libselinux-python python3-devel MySQL-python
     [ -n "$(grep ':8' /etc/system-release-cpe)" ] && yum -y install python36-devel python3-PyMySQL python3-pip
     [ -n "$(yum search procps-ng)" ] && yum -y install procps-ng || yum -y install procps
 
