@@ -5,6 +5,10 @@ if [ "$1" = "-v" ]; then
   ANSIBLE_VERSION="${2}"
 fi
 
+has_command() {
+        command -v "$1" &>/dev/null
+}
+
 yum_makecache_retry() {
   tries=0
   until [ $tries -ge 5 ]
@@ -39,7 +43,7 @@ if [ "x$KITCHEN_LOG" = "xDEBUG" ] || [ "x$OMNIBUS_ANSIBLE_LOG" = "xDEBUG" ]; the
   set -x
 fi
 
-if [ ! "$(which ansible-playbook)" ]; then
+if ! has_command ansible-playbook; then
   if [ -f /etc/centos-release ] || [ -f /etc/redhat-release ] || [ -f /etc/oracle-release ] || [ -f /etc/system-release ]; then
 
     # Install required Python libs and pip
@@ -59,10 +63,10 @@ if [ ! "$(which ansible-playbook)" ]; then
 
     yum -y install python-pip PyYAML python-jinja2 python-httplib2 python-keyczar python-paramiko git
     # If python-pip install failed and setuptools exists, try that
-    if [ -z "$(which pip)" ] && [ -z "$(which easy_install)" ]; then
       yum -y install python-setuptools
       easy_install pip
-    elif [ -z "$(which pip)" ] && [ -n "$(which easy_install)" ]; then
+    if ! has_command pip && ! has command easy_install; then
+    elif ! has_command pip && has_command easy_install; then
       easy_install pip
     fi
 
@@ -71,7 +75,7 @@ if [ ! "$(which ansible-playbook)" ]; then
     yum -y install sshpass libffi-devel openssl-devel && pip install pyrax pysphere boto passlib dnspython
 
     # Install Ansible module dependencies
-    yum -y install bzip2 file findutils git gzip hg svn sudo tar which unzip xz zip
+    yum -y install bzip2 file findutils git gzip hg svn sudo tar unzip xz zip
     [ ! -n "$(grep ':8' /etc/system-release-cpe)" ] && yum -y install libselinux-python python-devel MySQL-python
     [ -n "$(grep ':8' /etc/system-release-cpe)" ] && yum -y install python36-devel python3-PyMySQL python3-pip
     [ -n "$(yum search procps-ng)" ] && yum -y install procps-ng || yum -y install procps
@@ -87,10 +91,10 @@ if [ ! "$(which ansible-playbook)" ]; then
     dpkg_check_lock && apt-cache search ^git$ | grep -q "^git\s" && apt_install git || apt_install git-core
 
     # If python-pip install failed and setuptools exists, try that
-    if [ -z "$(which pip3)" ] && [ -z "$(which pip)" ] && [ -z "$(which easy_install)" ]; then
+    if ! has_command pip3 && ! has_command pip && ! has_command easy_install; then
       apt_install python-setuptools
       easy_install pip
-    elif [ -z "$(which pip3)" ] && [ -z "$(which pip)" ] && [ -n "$(which easy_install)" ]; then
+    elif ! has_command pip3 && ! has_command pip && has_command easy_install; then
       easy_install pip
     fi
     # If python-keyczar apt package does not exist, use pip
@@ -102,7 +106,7 @@ if [ ! "$(which ansible-playbook)" ]; then
       apt_install sshpass
       pip3 install cryptography || pip3 install cryptography==3.2.1
       pip3 install pyrax pysphere boto passlib dnspython pyopenssl
-    elif [ ! -z "$(which pip)" ]; then
+    elif ! has_command pip; then
       apt_install sshpass && pip install pyrax pysphere boto passlib dnspython pyopenssl
     fi
 
@@ -117,10 +121,10 @@ if [ ! "$(which ansible-playbook)" ]; then
     zypper --quiet --non-interactive install git || zypper --quiet --non-interactive install git-core
 
     # If python-pip install failed and setuptools exists, try that
-    if [ -z "$(which pip)" ] && [ -z "$(which easy_install)" ]; then
+    if ! has_command pip && ! has_command easy_install; then
       zypper --quiet --non-interactive install python-setuptools
       easy_install pip
-    elif [ -z "$(which pip)" ] && [ -n "$(which easy_install)" ]; then
+    elif ! has_command pip && has_command easy_install; then
       easy_install pip
     fi
 
@@ -129,10 +133,10 @@ if [ ! "$(which ansible-playbook)" ]; then
     dnf -y install gcc libffi-devel openssl-devel python-devel
 
     # If python-pip install failed and setuptools exists, try that
-    if [ -z "$(which pip)" ] && [ -z "$(which easy_install)" ]; then
+    if ! has_command pip && ! has_command easy_install; then
       dng -y install python-setuptools
       easy_install pip
-    elif [ -z "$(which pip)" ] && [ -n "$(which easy_install)" ]; then
+    elif ! has_command pip && has_command easy_install; then
       easy_install pip
     fi
 
@@ -144,9 +148,9 @@ if [ ! "$(which ansible-playbook)" ]; then
 
   mkdir -p /etc/ansible/
   printf "%s\n" "[local]" "localhost" > /etc/ansible/hosts
-  if [ -z "$ANSIBLE_VERSION" -a -n "$(which pip3)" ]; then
+  if [ -z "$ANSIBLE_VERSION" -a -n "$(command -v pip3)" ]; then
     pip3 install -q ansible
-  elif [ -n "$(which pip3)" ]; then
+  elif has_command pip3; then
     pip3 install -q ansible=="$ANSIBLE_VERSION"
   elif [ -z "$ANSIBLE_VERSION" ]; then
     pip install -q six --upgrade
