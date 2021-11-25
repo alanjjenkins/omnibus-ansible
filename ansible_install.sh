@@ -148,17 +148,28 @@ if ! has_command ansible-playbook; then
 
   mkdir -p /etc/ansible/
   printf "%s\n" "[local]" "localhost" > /etc/ansible/hosts
+  echo "Checking how to install Ansible"
   if [ -z "$ANSIBLE_VERSION" -a -n "$(command -v pip3)" ]; then
+    echo "Installing Ansible using pip3"
     pip3 install -q ansible
   elif has_command pip3; then
+    echo "Installing Ansible $ANSIBLE_VERSION using pip3"
     pip3 install -q ansible=="$ANSIBLE_VERSION"
   elif [ -z "$ANSIBLE_VERSION" ]; then
+    echo "Installing Ansible $ANSIBLE_VERSION using pip"
     pip install -q six --upgrade
     pip install -q ansible
   else
+    echo "Installing Ansible using pip"
     pip install -q six --upgrade
     pip install -q ansible=="$ANSIBLE_VERSION"
   fi
+  echo "Post the Ansible installation if statements"
+
+  if ! has_command "ansible-playbook"; then
+          echo "ansible-playbook is missing did it actually install?"
+  fi
+
   [ -n "$(grep ':8' /etc/system-release-cpe 2>/dev/null)" ] && ln -s /usr/local/bin/ansible /usr/bin/
   [ -n "$(grep ':8' /etc/system-release-cpe 2>/dev/null)" ] && ln -s /usr/local/bin/ansible-playbook /usr/bin/
   if [ -f /etc/centos-release ] || [ -f /etc/redhat-release ] || [ -f /etc/oracle-release ] || [ -f /etc/system-release ]; then
